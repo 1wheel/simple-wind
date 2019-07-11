@@ -46,7 +46,7 @@ function init(){
   ctx0.strokeStyle = "rgba(255,255,0,.4)"
   ctx0.stroke()
 
-  var s = 10
+  var s = 20
   var t0 = makeGrid(width, height, s, proj, gribs[0])
   var t1 = makeGrid(width, height, s, proj, gribs[1])
 

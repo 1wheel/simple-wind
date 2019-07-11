@@ -37,10 +37,12 @@ function init(){
   ctx0.strokeStyle = "rgba(255,0,255,.4)"
   ctx0.stroke()
 
-  var s = 20
+  var s = 10
   frames = d3.nestBy(points, d => d.date).map(d => {
     var frame = makeGrid(width, height, s, proj, d)
     frame.date = d3.timeParse('%Y%m%d%H')(d.key)
+    // silly hack to find center
+    frame.center = _.maxBy(frame.grid, d => d.u)
 
     return frame
   })
@@ -80,23 +82,28 @@ function init(){
     var time = d3.interpolate(frame0.date, frame1.date)(gt)
     timeSel.text(d3.timeFormat('%Y-%m-%d %H:%M')(time))
 
+    var dpx = Math.floor((frame0.center.px - frame1.center.px)/s)
+    var dpy = Math.floor((frame0.center.py - frame1.center.py)/s)
 
     dots.forEach(d => {
-      var px = Math.floor(d.px/s) % gridWidth
-      var py = Math.floor(d.py/s)
+      var px = Math.floor(d.px/s - dpx*(1 - gt))
+      var py = Math.floor(d.py/s - dpy*(1 - gt))
 
       // A     B
       //
       //
       // D     C
       var [A, B, C, D] = [
-        (px + 0) + (py + 0)*gridWidth,
-        (px + 1) + (py + 0)*gridWidth,
-        (px + 1) + (py + 1)*gridWidth,
-        (px + 0) + (py + 1)*gridWidth,
-      ].map(index => {
-        var v0 = frame0.grid[index]
-        var v1 = frame1.grid[index]
+        [px + 0, py + 0],
+        [px + 1, py + 0],
+        [px + 1, py + 1],
+        [px + 0, py + 1],
+      ].map(([px, py]) => {
+        var index = px + py*gridWidth
+
+        var v0 = frame0.grid[px + py*gridWidth]
+        var v1 = frame1.grid[px - dpx + (py - dpy)*gridWidth]
+        // var v1 = frame1.grid[px + py*gridWidth]
 
         if (!v0 || !v1) return null
 
